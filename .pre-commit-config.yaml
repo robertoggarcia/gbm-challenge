@@ -1,0 +1,41 @@
+repos:
+    -   repo: https://github.com/pre-commit/pre-commit-hooks
+        rev: v3.2.0
+        hooks:
+        -   id: check-added-large-files
+        -   id: check-yaml
+            exclude: chart/templates
+        -   id: debug-statements
+        -   id: end-of-file-fixer
+        -   id: trailing-whitespace
+        -   id: check-ast
+        -   id: check-builtin-literals
+        -   id: detect-private-key
+        -   id: mixed-line-ending
+        -   id: no-commit-to-branch
+
+    # format and sort Python imports
+    -   repo: https://github.com/timothycrosley/isort
+        rev: 5.5.3
+        hooks:
+        -   id: isort
+            args: [--profile=black]
+
+        # format Python code with black
+    -   repo: https://github.com/psf/black
+        rev: 20.8b1
+        hooks:
+        -   id: black
+
+
+    # code style checker with flake8
+    -   repo: https://gitlab.com/pycqa/flake8
+        rev: 3.8.3
+        hooks:
+        -   id: flake8
+
+    # static type checking with mypy
+    -   repo: https://github.com/pre-commit/mirrors-mypy
+        rev: v1.0.0
+        hooks:
+        -   id: mypy

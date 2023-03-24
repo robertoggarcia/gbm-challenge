@@ -1,0 +1,11 @@
+*
+!requirements.txt
+!docker-entrypoint.sh
+!uwsgi.ini
+!*.py
+!pyproject.toml
+!poetry.lock
+!app/
+!db/migrations/
+!tests/
+!pytest.ini
