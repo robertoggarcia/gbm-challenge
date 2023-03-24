@@ -60,4 +60,3 @@ async def set_secure_headers(request, call_next):
 
 app.include_router(healthcheck.router)
 app.include_router(api_router, prefix="/api/v1")
-

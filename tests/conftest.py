@@ -15,7 +15,7 @@ from app.main import app
 DATABASE_URL = "sqlite:///./test.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 
-Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(bind=engine)  # type: ignore[attr-defined]
 
 TestingSessionLocal = sessionmaker(
     autocommit=False,
@@ -34,10 +34,12 @@ def override_get_db():
 
 @pytest.fixture(scope="session")
 def db() -> Generator:
-    yield TestingSessionLocal()
+    session = TestingSessionLocal()
+    yield session
+    session.close()
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def client() -> Generator:
     """Override test client with local db
 
