@@ -1,3 +1,5 @@
+from typing import List
+
 from pydantic import BaseModel
 
 
@@ -12,6 +14,7 @@ class AccountSchema(AccountBase):
 class Account(AccountBase):
     id: int
     cash: float
+    issuers: List
 
     class Config:
         orm_mode = True
