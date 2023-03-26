@@ -31,7 +31,7 @@ class CRUDBase(Generic[ModelType, SchemaType]):
         db.refresh(db_obj)
         return db_obj
 
-    def get(self, db: Session, id: Any) -> Optional[ModelType]:
+    def get(self, db: Session, id: Any) -> ModelType:
         """Get a single ModelType filtered by id"""
         return db.query(self.model).filter(self.model.id == id).one()
 

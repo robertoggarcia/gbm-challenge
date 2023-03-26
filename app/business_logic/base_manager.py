@@ -13,6 +13,11 @@ from app.utils.exceptions import InvalidAccount
 
 
 class BaseManager:
+    """
+    Base class to setup business logic rules to validate
+    before process a operation
+    """
+
     def __init__(self, db: Session, account_id: int):
         self._db = db
         try:
@@ -24,7 +29,7 @@ class BaseManager:
         self.errors: List[str] = []
 
     @property
-    def account(self) -> Optional[Account]:
+    def account(self) -> Account:
         self._db.refresh(self._account)
         return self._account
 

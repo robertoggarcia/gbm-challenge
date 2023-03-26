@@ -16,7 +16,7 @@ class CRUDIssuer(CRUDBase[Issuer, IssuerSchema]):
         """Return Account issuer by name"""
         return (
             db.query(self.model)
-            .filter(Issuer.id == account_id, Issuer.issuer_name == name)
+            .filter(Issuer.account_id == account_id, Issuer.issuer_name == name)
             .first()
         )
 
