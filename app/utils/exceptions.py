@@ -19,3 +19,7 @@ class DeployError(Exception):
         if str(ex).find("the database system is starting up") > 0:
             failure = True
         return failure
+
+
+class InvalidAccount(Exception):
+    pass
