@@ -1,3 +1,5 @@
+from loguru import logger
+
 from app import crud
 from app.business_logic import constans
 from app.business_logic.base_manager import BaseManager
@@ -12,6 +14,9 @@ class OperationsManager(BaseManager):
         total = order.total_shares * order.share_price
         if total > self._account.cash:
             self.errors.append(constans.INSUFFICIENT_BALANCE)
+            logger.error(
+                f"Order can't be processed. Account id {self._account.id}, Operation {order.operation}: {self.errors}"
+            )
             return False
 
         order.account_id = self._account.id
@@ -70,6 +75,9 @@ class OperationsManager(BaseManager):
             )
         else:
             self.errors.append(constans.INSUFFICIENT_STOCKS)
+            logger.error(
+                f"Order can't be processed. Account id {self._account.id}, Operation {order.operation}: {self.errors}"
+            )
             return False
 
         return True

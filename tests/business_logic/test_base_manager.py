@@ -37,3 +37,23 @@ def test_base_manager_can_be_processed_close_market(db: Session, account, order_
     base_manager = BaseManager(db=db, account_id=account.id)
     assert not base_manager._can_be_processed(order=order_schema)
     assert base_manager.errors == [constans.CLOSED_MARKET]
+
+
+@freeze_time("2023-03-27 12:00:00-06:00")
+def test_base_manager_can_be_processed_invalid_total_shares(
+    db: Session, account, order_schema
+):
+    order_schema.total_shares = -1
+    base_manager = BaseManager(db=db, account_id=account.id)
+    assert not base_manager._can_be_processed(order=order_schema)
+    assert base_manager.errors == [constans.INVALID_TOTAL_SHARES_VALUE]
+
+
+@freeze_time("2023-03-27 12:00:00-06:00")
+def test_base_manager_can_be_processed_invalid_shares_price(
+    db: Session, account, order_schema
+):
+    order_schema.share_price = -1
+    base_manager = BaseManager(db=db, account_id=account.id)
+    assert not base_manager._can_be_processed(order=order_schema)
+    assert base_manager.errors == [constans.INVALID_SHARE_PRICE_VALUE]

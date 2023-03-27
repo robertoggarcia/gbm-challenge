@@ -1,7 +1,8 @@
 import datetime
-from typing import List, Optional
+from typing import List
 
 import pytz  # type: ignore[import]
+from loguru import logger
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
@@ -14,8 +15,8 @@ from app.utils.exceptions import InvalidAccount
 
 class BaseManager:
     """
-    Base class to setup business logic rules to validate
-    before process a operation
+    Base class to set up business logic rules to validate
+    before process an operation
     """
 
     def __init__(self, db: Session, account_id: int):
@@ -46,6 +47,15 @@ class BaseManager:
         self._redis = None
         return False
 
+    def _valid_share_values(self, order: OrderSchema) -> bool:
+        if order.total_shares < 0:
+            self.errors.append(constans.INVALID_TOTAL_SHARES_VALUE)
+            return False
+        if order.share_price < 0:
+            self.errors.append(constans.INVALID_SHARE_PRICE_VALUE)
+            return False
+        return True
+
     def _can_be_processed(self, order: OrderSchema) -> bool:
         if order.operation not in constans.VALID_OPERATION_TYPES:
             self.errors.append(constans.INVALID_OPERATION)
@@ -59,14 +69,21 @@ class BaseManager:
             self.errors.append(constans.DUPLICATED_OPERATION)
             return False
 
+        if not self._valid_share_values(order=order):
+            return False
+
         return True
 
     def process(self, order: OrderSchema) -> bool:
         if not self._can_be_processed(order=order):
+            logger.error(
+                f"Order can't be processed. Account id {self._account.id}, Operation {order.operation}: {self.errors}"
+            )
             return False
 
         try:
-            return self.__getattribute__(order.operation.lower())
+            logger.debug(f"Account: {self._account.id} Operation: {order.operation}")
+            return self.__getattribute__(order.operation.lower())(order=order)
         except AttributeError:
             self.errors.append(constans.INVALID_OPERATION)
             return False

@@ -1,6 +1,7 @@
 from typing import Any
 
 from fastapi import APIRouter, Depends
+from loguru import logger
 from sqlalchemy.orm import Session
 
 from app import crud, schemas
@@ -19,4 +20,5 @@ def create_account(
     Create new account.
     """
     account = crud.account.create(db=db, obj_in=account_in)
+    logger.debug(f"New account created: {account.id}")
     return account

@@ -68,7 +68,7 @@ def init_logging():
         handlers=[
             {
                 "sink": sys.stdout,
-                "level": logging.DEBUG,
+                "level": logging.INFO,
                 "format": format_record,
             }
         ]
