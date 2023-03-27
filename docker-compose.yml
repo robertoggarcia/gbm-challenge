@@ -4,6 +4,11 @@ networks:
   app-net:
 
 services:
+  redis:
+    image: redis
+    networks:
+      - app-net
+
   app:
     build:
       context: .
@@ -18,6 +23,7 @@ services:
       - 8000:8000
     depends_on:
       - db
+      - redis
     networks:
       - app-net
 

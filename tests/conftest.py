@@ -1,9 +1,11 @@
 """
 Setup sqlite db for tests
 """
+from os import getenv
 from typing import Generator
 
 import pytest
+import redis  # type: ignore[import]
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
@@ -70,3 +72,8 @@ def order_schema(account):
         share_price=50,
         account_id=account.id,
     )
+
+
+@pytest.fixture
+def in_memory_instance():
+    return redis.StrictRedis(host=getenv("REDIS_HOST"))

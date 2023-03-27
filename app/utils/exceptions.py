@@ -23,3 +23,7 @@ class DeployError(Exception):
 
 class InvalidAccount(Exception):
     pass
+
+
+class InMemoryManagerConnectionError(Exception):
+    pass

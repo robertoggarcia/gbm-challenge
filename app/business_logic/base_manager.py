@@ -8,9 +8,15 @@ from sqlalchemy.orm import Session
 
 from app import crud
 from app.business_logic import constans
+from app.db.in_memory import InMemoryManager
 from app.models.accounts import Account
 from app.schemas import OrderSchema
-from app.utils.exceptions import InvalidAccount
+from app.utils.exceptions import InMemoryManagerConnectionError, InvalidAccount
+
+
+class OperationInMemoryManager(InMemoryManager[str, dict]):
+    salt = "OPERATIONS"
+    lifetime = 60 * constans.DEFAULT_STOCK_OPERATION_VALID_MINUTES
 
 
 class BaseManager:
@@ -26,7 +32,11 @@ class BaseManager:
         except NoResultFound:
             raise InvalidAccount
 
-        self._redis = None
+        try:
+            self._in_memory_store = OperationInMemoryManager()
+        except InMemoryManagerConnectionError:
+            self._in_memory_store = None  # type: ignore[assignment]
+
         self.errors: List[str] = []
 
     @property
@@ -43,9 +53,23 @@ class BaseManager:
         current_time = current_datetime.time()
         return constans.OPEN_MARKET_TIME < current_time < constans.CLOSE_MARKET_TIME
 
-    def _is_duplicated_operation(self) -> bool:
-        self._redis = None
-        return False
+    def _is_duplicated_operation(self, order: OrderSchema) -> bool:
+        if not self._in_memory_store:
+            logger.error(
+                f"Duplicated operation can't be validated: "
+                f"Account {self._account.id} Order {order.operation} "
+                f"Issuer {order.issuer_name} Total shares {order.total_shares}"
+            )
+            return False
+
+        key = f"{self._account.id}_{order.operation}_{order.issuer_name}_{order.total_shares}"
+        order_duplicated = self._in_memory_store.get(key=key)
+
+        return True if order_duplicated else False
+
+    def _update_operation_in_memory(self, order: OrderSchema) -> None:
+        key = f"{self._account.id}_{order.operation}_{order.issuer_name}_{order.total_shares}"
+        self._in_memory_store.set(key=key, value=order.dict())
 
     def _valid_share_values(self, order: OrderSchema) -> bool:
         if order.total_shares < 0:
@@ -65,7 +89,7 @@ class BaseManager:
             self.errors.append(constans.CLOSED_MARKET)
             return False
 
-        if self._is_duplicated_operation():
+        if self._is_duplicated_operation(order=order):
             self.errors.append(constans.DUPLICATED_OPERATION)
             return False
 
@@ -83,6 +107,7 @@ class BaseManager:
 
         try:
             logger.debug(f"Account: {self._account.id} Operation: {order.operation}")
+            self._update_operation_in_memory(order=order)
             return self.__getattribute__(order.operation.lower())(order=order)
         except AttributeError:
             self.errors.append(constans.INVALID_OPERATION)

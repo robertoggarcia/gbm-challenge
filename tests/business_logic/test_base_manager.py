@@ -2,7 +2,7 @@ from freezegun import freeze_time
 from sqlalchemy.orm import Session
 
 from app.business_logic import constans
-from app.business_logic.base_manager import BaseManager
+from app.business_logic.base_manager import BaseManager, OperationInMemoryManager
 
 
 @freeze_time("2023-03-27 12:00:00-06:00")
@@ -57,3 +57,15 @@ def test_base_manager_can_be_processed_invalid_shares_price(
     base_manager = BaseManager(db=db, account_id=account.id)
     assert not base_manager._can_be_processed(order=order_schema)
     assert base_manager.errors == [constans.INVALID_SHARE_PRICE_VALUE]
+
+
+@freeze_time("2023-03-27 12:00:00-06:00")
+def test_base_manager_can_be_processed_duplicated_operation(
+    db: Session, account, order_schema, in_memory_instance
+):
+    key = f"{account.id}_{order_schema.operation}_{order_schema.issuer_name}_{order_schema.total_shares}"
+    in_memory_instance.set(f"{OperationInMemoryManager.salt}_{key}", 1, ex=60 * 2)
+
+    base_manager = BaseManager(db=db, account_id=account.id)
+    assert not base_manager._can_be_processed(order=order_schema)
+    assert base_manager.errors == [constans.DUPLICATED_OPERATION]
