@@ -12,7 +12,9 @@ from app.utils.serializers import serialize_operation
 router = APIRouter()
 
 
-@router.post("/{account_id}/orders", response_model=schemas.OrderResponse)
+@router.post(
+    "/{account_id}/orders", response_model=schemas.OrderResponse, tags=["orders"]
+)
 def create_order(
     *,
     db: Session = Depends(get_db),

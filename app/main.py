@@ -11,10 +11,33 @@ from app.utils.exceptions import DeployError
 
 secure_headers = Secure()
 
+description = """
+A brokerage API service to process a set of bull/sell orders. 🚀
+
+## Account
+
+You can **create accounts**.
+
+## Orders
+
+You will be able to **create orders**.
+"""
+
+tags_metadata = [
+    {
+        "name": "accounts",
+        "description": "Create an **account** with initial balance.",
+    },
+    {
+        "name": "orders",
+        "description": "Send the buy/sell orders for specific account.",
+    },
+]
 app = fastapi.FastAPI(
     title="GBM Challenge",
-    description="GBM Software Engineer Challenge",
+    description=description,
     version="0.1.0",
+    openapi_tags=tags_metadata,
 )
 
 

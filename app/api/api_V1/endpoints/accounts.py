@@ -10,7 +10,7 @@ from app.helpers.db import get_db
 router = APIRouter()
 
 
-@router.post("/", response_model=schemas.Account)
+@router.post("/", response_model=schemas.Account, tags=["accounts"])
 def create_account(
     *,
     db: Session = Depends(get_db),

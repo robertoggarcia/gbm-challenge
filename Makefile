@@ -9,4 +9,4 @@ logs:
 	docker-compose logs --follow
 
 test:
-	docker-compose exec app pytest -v tests/
+	docker-compose exec app pytest -v --cov=app tests/
