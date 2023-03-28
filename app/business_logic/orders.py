@@ -12,13 +12,13 @@ class OperationsManager(BaseManager):
 
     def buy(self, order: OrderSchema) -> bool:
         """Buy issuer and add to account"""
+        order.account_id = self._account.id
         total = order.total_shares * order.share_price
         if total > self._account.cash:
             self.errors.append(constans.INSUFFICIENT_BALANCE)
-            logger.error(f"Order can't be processed {order}: {self.errors}")
+            logger.info(f"Order can't be processed {order}: {self.errors}")
             return False
 
-        order.account_id = self._account.id
         crud.order.create(db=self._db, obj_in=order)
         issuer = crud.issuer.get_issuer_by_name(
             db=self._db, account_id=self._account.id, name=order.issuer_name
@@ -47,15 +47,16 @@ class OperationsManager(BaseManager):
         issuer = crud.issuer.get_issuer_by_name(
             db=self._db, account_id=self._account.id, name=order.issuer_name
         )
+        order.account_id = self._account.id
 
         if issuer:
             current_stocks = issuer.total_shares
 
             if current_stocks < order.total_shares:
+                logger.info(f"Order can't be processed {order}: {self.errors}")
                 self.errors.append(constans.INSUFFICIENT_STOCKS)
                 return False
 
-            order.account_id = self._account.id
             crud.order.create(db=self._db, obj_in=order)
 
             shares = issuer.total_shares - order.total_shares
@@ -75,7 +76,7 @@ class OperationsManager(BaseManager):
             )
         else:
             self.errors.append(constans.INSUFFICIENT_STOCKS)
-            logger.error(f"Order can't be processed {order}: {self.errors}")
+            logger.info(f"Order can't be processed {order}: {self.errors}")
             return False
 
         return True

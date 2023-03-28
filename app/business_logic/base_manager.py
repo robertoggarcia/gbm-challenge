@@ -30,6 +30,7 @@ class BaseManager:
         try:
             self._account = crud.account.get(db=db, id=account_id)
         except NoResultFound:
+            logger.info(f"Invalid account {account_id}")
             raise InvalidAccount
 
         try:
@@ -98,7 +99,7 @@ class BaseManager:
     def process(self, order: OrderSchema) -> bool:
         """Process operation"""
         if not self._can_be_processed(order=order):
-            logger.error(f"Order can't be processed {order}: {self.errors}")
+            logger.info(f"Order can't be processed {order}: {self.errors}")
             return False
 
         try:
