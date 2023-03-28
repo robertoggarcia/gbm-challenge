@@ -10,6 +10,7 @@ services:
       - app-net
 
   app:
+    image: gbm-challenge_app
     build:
       context: .
       target: builder
