@@ -15,6 +15,7 @@ from app.db.base_class import Base
 from app.helpers.db import get_db
 from app.main import app
 from app.schemas import AccountSchema, OrderSchema
+from app.utils.auth import validate_token
 
 DATABASE_URL = "sqlite:///./test.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
@@ -43,6 +44,11 @@ def db() -> Generator:
     session.close()
 
 
+def override_validate_token():
+    """override_validate_token"""
+    return None
+
+
 @pytest.fixture(scope="session")
 def client() -> Generator:
     """Override test client with local db
@@ -51,6 +57,7 @@ def client() -> Generator:
         Generator: TestClient
     """
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[validate_token] = override_validate_token
     with TestClient(app) as c:
         yield c
 

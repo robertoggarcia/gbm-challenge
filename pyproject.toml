@@ -21,6 +21,8 @@ pytz = "^2023.2"
 freezegun = "^1.2.2"
 redis = "^4.5.3"
 pytest-mock = "^3.10.0"
+pyjwt = "^2.6.0"
+python-jose = "^3.3.0"
 
 
 [build-system]
