@@ -46,6 +46,7 @@ class BaseManager:
 
     @staticmethod
     def _is_market_open() -> bool:
+        """Validate is market is open based on OPEN_MARKET_TIME, CLOSE_MARKET_TIME and OPEN_MARKET_DAYS_OF_WEEK"""
         current_datetime = datetime.datetime.now(pytz.timezone(constans.TIMEZONE))
         if current_datetime.weekday() not in constans.OPEN_MARKET_DAYS_OF_WEEK:
             return False
@@ -54,13 +55,12 @@ class BaseManager:
         return constans.OPEN_MARKET_TIME < current_time < constans.CLOSE_MARKET_TIME
 
     def _is_duplicated_operation(self, order: OrderSchema) -> bool:
+        """Validate if the operation was duplicated in the defined window (5 minutes):
+        account, operation, issuer, total_shares
+        """
         if not self._in_memory_store:
-            logger.error(
-                f"Duplicated operation can't be validated: "
-                f"Account {self._account.id} Order {order.operation} "
-                f"Issuer {order.issuer_name} Total shares {order.total_shares}"
-            )
-            return False
+            logger.error(f"Duplicated operation can't be validated: {order}")
+            return not constans.ALLOW_DUPLICATION_IF_REDIS_FAILS
 
         key = f"{self._account.id}_{order.operation}_{order.issuer_name}_{order.total_shares}"
         order_duplicated = self._in_memory_store.get(key=key)
@@ -68,47 +68,45 @@ class BaseManager:
         return True if order_duplicated else False
 
     def _update_operation_in_memory(self, order: OrderSchema) -> None:
+        """Set up last operation in memory: account, operation, issuer, total_shares. To avoid duplicated operations"""
         key = f"{self._account.id}_{order.operation}_{order.issuer_name}_{order.total_shares}"
         self._in_memory_store.set(key=key, value=order.dict())
 
-    def _valid_share_values(self, order: OrderSchema) -> bool:
-        if order.total_shares < 0:
+    def _valid_share_values(self, order: OrderSchema) -> None:
+        """Validate allowed shares values"""
+        if order.total_shares < constans.DEFAULT_MIN_SHARES_VALUES:
             self.errors.append(constans.INVALID_TOTAL_SHARES_VALUE)
-            return False
-        if order.share_price < 0:
+
+        if order.share_price < constans.DEFAULT_MIN_SHARES_VALUES:
             self.errors.append(constans.INVALID_SHARE_PRICE_VALUE)
-            return False
-        return True
 
     def _can_be_processed(self, order: OrderSchema) -> bool:
+        """Validate business rules before execute an operation"""
         if order.operation not in constans.VALID_OPERATION_TYPES:
             self.errors.append(constans.INVALID_OPERATION)
-            return False
 
         if not self._is_market_open():
             self.errors.append(constans.CLOSED_MARKET)
-            return False
 
         if self._is_duplicated_operation(order=order):
             self.errors.append(constans.DUPLICATED_OPERATION)
-            return False
 
-        if not self._valid_share_values(order=order):
-            return False
+        self._valid_share_values(order=order)
 
-        return True
+        return not self.errors
 
     def process(self, order: OrderSchema) -> bool:
+        """Process operation"""
         if not self._can_be_processed(order=order):
-            logger.error(
-                f"Order can't be processed. Account id {self._account.id}, Operation {order.operation}: {self.errors}"
-            )
+            logger.error(f"Order can't be processed {order}: {self.errors}")
             return False
 
         try:
-            logger.debug(f"Account: {self._account.id} Operation: {order.operation}")
-            self._update_operation_in_memory(order=order)
-            return self.__getattribute__(order.operation.lower())(order=order)
+            result = self.__getattribute__(order.operation.lower())(order=order)
+            logger.debug(f"{order}")
+            if result:
+                self._update_operation_in_memory(order=order)
+            return result
         except AttributeError:
             self.errors.append(constans.INVALID_OPERATION)
             return False

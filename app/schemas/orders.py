@@ -11,6 +11,12 @@ class OrderBase(BaseModel):
     share_price: float
     account_id: int
 
+    def __str__(self):
+        return (
+            f"Account {self.account_id} - Operation {self.operation} - Issuer {self.issuer_name} - "
+            f"Shares {self.total_shares} - Share price {self.share_price}"
+        )
+
 
 class OrderSchema(OrderBase):
     account_id: Optional[int]  # type: ignore[assignment]

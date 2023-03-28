@@ -11,12 +11,11 @@ class OperationsManager(BaseManager):
     """Class to define business logic for all valid operations"""
 
     def buy(self, order: OrderSchema) -> bool:
+        """Buy issuer and add to account"""
         total = order.total_shares * order.share_price
         if total > self._account.cash:
             self.errors.append(constans.INSUFFICIENT_BALANCE)
-            logger.error(
-                f"Order can't be processed. Account id {self._account.id}, Operation {order.operation}: {self.errors}"
-            )
+            logger.error(f"Order can't be processed {order}: {self.errors}")
             return False
 
         order.account_id = self._account.id
@@ -44,6 +43,7 @@ class OperationsManager(BaseManager):
         return True
 
     def sell(self, order: OrderSchema) -> bool:
+        """Sell account issuer"""
         issuer = crud.issuer.get_issuer_by_name(
             db=self._db, account_id=self._account.id, name=order.issuer_name
         )
@@ -75,9 +75,7 @@ class OperationsManager(BaseManager):
             )
         else:
             self.errors.append(constans.INSUFFICIENT_STOCKS)
-            logger.error(
-                f"Order can't be processed. Account id {self._account.id}, Operation {order.operation}: {self.errors}"
-            )
+            logger.error(f"Order can't be processed {order}: {self.errors}")
             return False
 
         return True
