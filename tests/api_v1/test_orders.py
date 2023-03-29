@@ -1,7 +1,9 @@
 from fastapi.testclient import TestClient
+from freezegun import freeze_time
 from sqlalchemy.orm import Session
 
 
+@freeze_time("2023-03-27 12:00:00-06:00")
 def test_create_order(client: TestClient, db: Session, account) -> None:
     """Test API POST accounts/1/orders endpoint"""
     data = {
