@@ -1,4 +1,4 @@
-# GBM Software Engineer Challenge
+# Stock market API Challenge
 ### Roberto de Jesús García
 
 ## API Docs
