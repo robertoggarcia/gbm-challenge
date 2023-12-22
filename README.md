@@ -1,4 +1,4 @@
-# Stock market API Challenge
+# Stock market API
 ### Roberto de Jesús García
 
 ## API Docs
