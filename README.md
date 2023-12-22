@@ -41,7 +41,7 @@ We are using `Auth0` to protect our API. The following values must be setting on
 You can use a curl POST request to Auth0's oauth/token endpoint to get the access token:
     ```
     curl --request POST \
-      --url https://dev-i0ib3uir.jp.auth0.com/oauth/token \
+      --url https://auth0.com/oauth/token \
       --header 'content-type: application/json' \
-      --data '{"client_id":"ktR7nwI1TV5166MoWkgci1vv8zgijbvT","client_secret":"9D5TSEXC5kvt0nl5t-BkJnmR_zcOCVwfCDQd3EtTvgTAo7XxE0Pbd6-WTp-vtVMM","audience":"https://dev-i0ib3uir.jp.auth0.com/api/v2/","grant_type":"client_credentials"}'
+      --data '{"client_id":"","client_secret":"","audience":"https://auth0.com/api/v2/","grant_type":"client_credentials"}'
     ```
